@@ -13,12 +13,6 @@ public class QuestManager(InventoryManager inventoryManager,
     public event Action<string>? OnOrderCompleted;
     bool _automated;
     private int _targetBoardSize;
-    private int TargetBoardSize => _targetBoardSize == 0 ? 20 : _targetBoardSize;
-    private void LoadBoardSizeFromRules()
-    {
-        // manual: 4, automated: 50 (tweak later if needed)
-        _targetBoardSize = _automated ? 50 : 4;
-    }
     public async Task SetStyleContextAsync(QuestServicesContext context, FarmKey farm)
     {
         if (farm.IsCoin)
@@ -26,7 +20,8 @@ public class QuestManager(InventoryManager inventoryManager,
             return; //i think should not even do this for coin farms.
         }
         _automated = rulesManager.AutomationEnabled;
-        LoadBoardSizeFromRules();
+        _targetBoardSize = await context.OrderBoardSizeProvider.GetBoardSizeAsync(farm, _automated);
+        //LoadBoardSizeFromRules();
         _currentLevel = progressionManager.CurrentLevel;
         _quests = await context.QuestProfile.LoadAsync();
         _questProfile = context.QuestProfile;
@@ -126,7 +121,7 @@ public class QuestManager(InventoryManager inventoryManager,
     }
     private void FillBoardToTarget()
     {
-        if (_quests.Count >= TargetBoardSize)
+        if (_quests.Count >= _targetBoardSize)
         {
             return;
         }
@@ -139,7 +134,7 @@ public class QuestManager(InventoryManager inventoryManager,
 
         int level = _currentLevel;
 
-        int addsRemaining = TargetBoardSize - _quests.Count;
+        int addsRemaining = _targetBoardSize - _quests.Count;
 
         int steps = 0;
         const int maxSteps = 500; // bump because 40 board can scan more levels
