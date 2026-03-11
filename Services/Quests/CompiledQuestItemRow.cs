@@ -4,9 +4,9 @@ public class CompiledQuestItemRow
 {
     public required string ItemName { get; init; } = "";
     public required EnumItemCategory ItemCategory { get; init; }
-    public int PlayerLevel { get; init; }
+    public required int PlayerLevel { get; init; }
     //try to not worry about theme
-    public int ItemWeight { get; init; }
+    public required int ItemWeight { get; init; }
     public required int QuantityMin { get; init; }
     public required int QuantityMax { get; init; }
 }
