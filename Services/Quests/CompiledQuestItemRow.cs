@@ -7,6 +7,5 @@ public class CompiledQuestItemRow
     public required int PlayerLevel { get; init; }
     //try to not worry about theme
     public required int ItemWeight { get; init; }
-    public required int QuantityMin { get; init; }
-    public required int QuantityMax { get; init; }
+    public required BasicList<int> Ranges { get; init; } = [];
 }
