@@ -1,7 +1,8 @@
 ﻿namespace FarmSim.Domain.Services.StartingOptions;
 public class InventoryStorageStartingOptionsService(
-     IInventoryFactory inventoryFactory,
-    IUpgradeFactory upgradeFactory
+    IInventoryFactory inventoryFactory,
+    IUpgradeFactory upgradeFactory,
+    IAutomatedStartingInventoryProvider automatedStartingInventoryProvider
     )
 {
     public async Task ApplyAutomatedOptionsAsync(FarmKey farm)
@@ -12,11 +13,8 @@ public class InventoryStorageStartingOptionsService(
         var plan = await upgradeCtx.InventoryStorageUpgradePlanProvider.GetPlanAsync(farm, true);
         storage.BarnSize = plan.BarnUpgrades.First().Size;
         storage.SiloSize = plan.SiloUpgrades.First().Size;
-
-
         var service = inventoryFactory.GetInventoryServices(farm);
-        var list = await service.LoadAsync(farm);
-        list.Clear();
+        var list = automatedStartingInventoryProvider.GetStartingInventory(farm);
         await service.SaveAsync(farm, list);
         await storageProfileSvc.SaveAsync(storage);
     }
