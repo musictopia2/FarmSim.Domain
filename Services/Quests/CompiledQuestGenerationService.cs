@@ -1,5 +1,5 @@
 ﻿namespace FarmSim.Domain.Services.Quests;
-public class CompiledBaseQuestGenerationService : IQuestGenerationService
+public class CompiledQuestGenerationService : IQuestGenerationService
 {
     QuestInstanceModel IQuestGenerationService.CreateQuest(int currentLevel,
         BasicList<QuestRewardRowModel> rewards,
