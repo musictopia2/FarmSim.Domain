@@ -1,6 +1,5 @@
 ﻿namespace FarmSim.Domain.Services.Quests;
 public class QuestManager(InventoryManager inventoryManager,
-    ItemManager itemManager,
     ProgressionManager progressionManager,
     RulesManager rulesManager
     )
@@ -13,6 +12,9 @@ public class QuestManager(InventoryManager inventoryManager,
     public event Action<string>? OnOrderCompleted;
     bool _automated;
     private int _targetBoardSize;
+    private BasicList<QuestRewardRow> _rewards = [];
+    private BasicList<CompiledQuestItemRow> _compiledItems = [];
+    private BasicList<CategoryWeightRow> _categoryWeights = [];
     public async Task SetStyleContextAsync(QuestServicesContext context, FarmKey farm)
     {
         if (farm.IsCoin)
@@ -21,7 +23,9 @@ public class QuestManager(InventoryManager inventoryManager,
         }
         _automated = rulesManager.AutomationEnabled;
         _targetBoardSize = await context.OrderBoardSizeProvider.GetBoardSizeAsync(farm, _automated);
-        //LoadBoardSizeFromRules();
+        _rewards = await context.QuestRewardProvider.GetRewardsAsync(farm, _automated);
+        _categoryWeights = await context.CategoryWeightProvider.GetCategoriesAsync(farm);
+        _compiledItems = await context.CompiledQuestBalanceProvider.GetQuestBalanceAsync(farm, _automated);
         _currentLevel = progressionManager.CurrentLevel;
         _quests = await context.QuestProfile.LoadAsync();
         _questProfile = context.QuestProfile;
@@ -155,11 +159,8 @@ public class QuestManager(InventoryManager inventoryManager,
                 level++;
                 continue;
             }
-
-            var eligible = itemManager.GetEligibleItems(level);
-
             var boardSnapshot = _quests.ToBasicList();
-            var quest = _questGenerationService.CreateQuest(level, eligible, boardSnapshot);
+            var quest = _questGenerationService.CreateQuest(level, _rewards, _compiledItems, _categoryWeights);
 
             quest.QuestId = Guid.NewGuid().ToString();
             quest.Seen = initialFill;

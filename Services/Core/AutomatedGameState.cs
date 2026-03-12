@@ -245,7 +245,7 @@ public class AutomatedGameState : IGameTimer
             _progressionFactory.GetProgressionServices(farm).WorkshopProgressionPlanProvider
             );
         await _itemManager.SetItemStyleContextAsync(itemContext, farm);
-        QuestServicesContext questContext = _questFactory.GetQuestServices(farm, _cropManager, _treeManager, _animalManager, _workshopManager, _itemManager, _rulesManager);
+        QuestServicesContext questContext = _questFactory.GetQuestServices(farm, true);
         await _questManager.SetStyleContextAsync(questContext, farm);
         InstantUnlimitedServicesContext instantUnlimitedContext = _instantUnlimitedFactory.GetInstantUnlimitedServices(farm);
         await _instantUnlimitedManager.SetInstantUnlimitedStyleContextAsync(instantUnlimitedContext);

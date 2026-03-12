@@ -104,7 +104,7 @@ public class GameTickRunner(IStartFarmRegistry farmRegistry,
             timedBoostManager, rentalManager, rulesManager
         );
 
-        QuestManager questManager = new(inventory, itemManager, progressionManager, rulesManager);
+        QuestManager questManager = new(inventory, progressionManager, rulesManager);
         ScenarioManager scenarioManager = new(inventory, cropManager, treeManager, animalManager, workshopManager, worksiteManager);
         RandomChestManager randomChestManager = new(inventory, timedBoostManager);
 
@@ -174,7 +174,7 @@ public class GameTickRunner(IStartFarmRegistry farmRegistry,
             catalogManager, inventory, instantUnlimitedManager,
             timedBoostManager, rentalManager, rulesManager
         );
-        QuestManager questManager = new(inventory, itemManager, progressionManager, rulesManager);
+        QuestManager questManager = new(inventory, progressionManager, rulesManager);
         ScenarioManager scenarioManager = new(inventory);
         RandomChestManager randomChestManager = new(inventory, timedBoostManager);
         AchievementManager achievementManager = new(
