@@ -2,15 +2,15 @@
 public class CompiledBaseQuestGenerationService : IQuestGenerationService
 {
     QuestInstanceModel IQuestGenerationService.CreateQuest(int currentLevel,
-        BasicList<QuestRewardRow> rewards,
-        BasicList<CompiledQuestItemRow> allItems,
-        BasicList<CategoryWeightRow> categories
+        BasicList<QuestRewardRowModel> rewards,
+        BasicList<CompiledQuestItemRowModel> allItems,
+        BasicList<CategoryWeightRowModel> categories
         )
     {
         var category = ChooseCategory(categories, currentLevel);
         var filters = allItems.ToBasicList();
         filters.KeepConditionalItems(x => x.PlayerLevel == currentLevel && x.ItemCategory == category);
-        CompiledQuestItemRow chosen = GetChosenItem(filters);
+        CompiledQuestItemRowModel chosen = GetChosenItem(filters);
         int required = Required(chosen);
         return new()
         {
@@ -20,9 +20,9 @@ public class CompiledBaseQuestGenerationService : IQuestGenerationService
             Required = required,
         };
     }
-    private static Dictionary<string, int> GetReward(BasicList<QuestRewardRow> rewards, int currentLevel)
+    private static Dictionary<string, int> GetReward(BasicList<QuestRewardRowModel> rewards, int currentLevel)
     {
-        QuestRewardRow? row = rewards.SingleOrDefault(x =>
+        QuestRewardRowModel? row = rewards.SingleOrDefault(x =>
             currentLevel >= x.MinLevel &&
             (x.MaxLevel == null || currentLevel <= x.MaxLevel)
             );
@@ -34,11 +34,11 @@ public class CompiledBaseQuestGenerationService : IQuestGenerationService
 
         return row.Rewards;
     }
-    private static int Required(CompiledQuestItemRow item)
+    private static int Required(CompiledQuestItemRowModel item)
     {
         return item.Ranges.GetRandomItem();
     }
-    private static CompiledQuestItemRow GetChosenItem(BasicList<CompiledQuestItemRow> compileList)
+    private static CompiledQuestItemRowModel GetChosenItem(BasicList<CompiledQuestItemRowModel> compileList)
     {
         BasicList<string> possList = [];
         foreach (var item in compileList)
@@ -51,7 +51,7 @@ public class CompiledBaseQuestGenerationService : IQuestGenerationService
         string doChoose = possList.GetRandomItem();
         return compileList.Single(x => x.ItemName == doChoose);
     }
-    private static EnumItemCategory ChooseCategory(BasicList<CategoryWeightRow> categories, int level)
+    private static EnumItemCategory ChooseCategory(BasicList<CategoryWeightRowModel> categories, int level)
     {
         var category = categories.Single(x => x.PlayerLevel == level);
 

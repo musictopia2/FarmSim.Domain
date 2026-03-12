@@ -1,5 +1,5 @@
 ﻿namespace FarmSim.Domain.Services.Quests;
-public class QuestRewardRow
+public class QuestRewardRowModel
 {
     public required int MinLevel { get; set; }
     public int? MaxLevel { get; set; }

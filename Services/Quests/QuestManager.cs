@@ -12,9 +12,9 @@ public class QuestManager(InventoryManager inventoryManager,
     public event Action<string>? OnOrderCompleted;
     bool _automated;
     private int _targetBoardSize;
-    private BasicList<QuestRewardRow> _rewards = [];
-    private BasicList<CompiledQuestItemRow> _compiledItems = [];
-    private BasicList<CategoryWeightRow> _categoryWeights = [];
+    private BasicList<QuestRewardRowModel> _rewards = [];
+    private BasicList<CompiledQuestItemRowModel> _compiledItems = [];
+    private BasicList<CategoryWeightRowModel> _categoryWeights = [];
     public async Task SetStyleContextAsync(QuestServicesContext context, FarmKey farm)
     {
         if (farm.IsCoin)

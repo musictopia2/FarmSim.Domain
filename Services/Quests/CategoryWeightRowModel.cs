@@ -1,5 +1,5 @@
 ﻿namespace FarmSim.Domain.Services.Quests;
-public class CategoryWeightRow
+public class CategoryWeightRowModel
 {
     public int PlayerLevel { get; set; }
     public int WorksiteWeight { get; set; }

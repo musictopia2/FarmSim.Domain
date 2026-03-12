@@ -2,7 +2,7 @@
 public interface IQuestGenerationService
 {
     QuestInstanceModel CreateQuest(int currentLevel,
-        BasicList<QuestRewardRow> rewards,
-        BasicList<CompiledQuestItemRow> allItems,
-        BasicList<CategoryWeightRow> categories);
+        BasicList<QuestRewardRowModel> rewards,
+        BasicList<CompiledQuestItemRowModel> allItems,
+        BasicList<CategoryWeightRowModel> categories);
 }
