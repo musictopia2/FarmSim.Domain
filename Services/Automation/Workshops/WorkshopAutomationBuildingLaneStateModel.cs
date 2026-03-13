@@ -9,4 +9,5 @@ public class WorkshopAutomationBuildingLaneStateModel
     public bool Unlocked { get; set; } = true;
     public int VirtualCount { get; set; } //this is what count i have for this.
     public BasicList<WorkshopAutomationItemStateModel> Items { get; set; } = [];
+    public string? PriorityItem { get; set; }
 }

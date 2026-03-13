@@ -755,16 +755,114 @@ public class WorkshopAutomationManager(
         // producing into StoredUnits is allowed even if barn is full (delivery will block later)
         return true;
     }
+    private void ClearPriorityIfCompleted(WorkshopAutomationBuildingLaneStateModel lane, string item)
+    {
+        if (string.IsNullOrWhiteSpace(lane.PriorityItem))
+        {
+            return;
+        }
 
+        if (lane.PriorityItem.Equals(item, StringComparison.OrdinalIgnoreCase) == false)
+        {
+            return;
+        }
+
+        var state = lane.Items.Single(x => x.Item.Equals(item, StringComparison.OrdinalIgnoreCase));
+        int outstanding = state.RequestedTotal - state.DeliveredTowardRequest;
+        if (outstanding <= 0)
+        {
+            lane.PriorityItem = null;
+            _needsSaving = true;
+        }
+    }
+
+    public void SetPriorityItem(string buildingName, string? craftedItem)
+    {
+        lock (_lock)
+        {
+            var lane = GetLaneByBuildingName(buildingName);
+
+            if (string.IsNullOrWhiteSpace(craftedItem))
+            {
+                lane.PriorityItem = null;
+                _needsSaving = true;
+                return;
+            }
+
+            var recipe = _recipes.SingleOrDefault(x =>
+                x.BuildingName.Equals(buildingName, StringComparison.OrdinalIgnoreCase) &&
+                x.Item.Equals(craftedItem, StringComparison.OrdinalIgnoreCase));
+
+            if (recipe is null)
+            {
+                throw new CustomBasicException(
+                    $"Item '{craftedItem}' is not crafted in building '{buildingName}'.");
+            }
+
+            var state = lane.Items.SingleOrDefault(x =>
+                x.Item.Equals(craftedItem, StringComparison.OrdinalIgnoreCase));
+
+            if (state is null || state.Unlocked == false)
+            {
+                throw new CustomBasicException(
+                    $"Item '{craftedItem}' is not unlocked for building '{buildingName}'.");
+            }
+
+            lane.PriorityItem = craftedItem;
+            _needsSaving = true;
+
+            // Optional:
+            // If lane is idle or blocked, wake it up so the new priority matters immediately.
+            //if (lane.CycleEndsAt is null)
+            //{
+            //    lane.ActiveItem = null;
+            //    lane.BlockedAt = null;
+            //    lane.StartedAt = null;
+            //}
+        }
+    }
+
+    public string? GetPriorityItem(string buildingName)
+    {
+        var lane = GetLaneByBuildingName(buildingName);
+        return lane.PriorityItem;
+    }
     private string? PickNextCraftableItemForLane(WorkshopAutomationBuildingLaneStateModel lane)
     {
-        foreach (var r in _recipes.Where(x => x.BuildingName == lane.BuildingName))
+        var recipesForLane = _recipes
+            .Where(x => x.BuildingName.Equals(lane.BuildingName, StringComparison.OrdinalIgnoreCase))
+            .ToBasicList();
+
+        if (string.IsNullOrWhiteSpace(lane.PriorityItem) == false)
+        {
+            var priorityRecipe = recipesForLane
+                .FirstOrDefault(x => x.Item.Equals(lane.PriorityItem, StringComparison.OrdinalIgnoreCase));
+
+            if (priorityRecipe is not null && CanStartItemNow(lane, priorityRecipe))
+            {
+                return priorityRecipe.Item;
+            }
+
+            // Optional cleanup:
+            // if the priority item has no outstanding anymore, clear it here too.
+            var priorityState = lane.Items
+                .SingleOrDefault(x => x.Item.Equals(lane.PriorityItem, StringComparison.OrdinalIgnoreCase));
+
+            if (priorityState is null || (priorityState.RequestedTotal - priorityState.DeliveredTowardRequest) <= 0)
+            {
+                lane.PriorityItem = null;
+                _needsSaving = true;
+            }
+        }
+
+        foreach (var r in recipesForLane)
         {
             if (CanStartItemNow(lane, r))
             {
                 return r.Item;
             }
         }
+
         return null;
     }
 
@@ -823,6 +921,7 @@ public class WorkshopAutomationManager(
                     lane.BlockedAt = null;
                     lane.CycleEndsAt = null;
                     st.StoredUnits = 0;
+                    ClearPriorityIfCompleted(lane, st.Item);
                 }
 
                 _needsSaving = true;
