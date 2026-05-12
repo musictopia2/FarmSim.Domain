@@ -8,7 +8,7 @@
     <FeedType>Public</FeedType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CommonBasicLibraries" Version="10.0.33" />
+    <PackageReference Include="CommonBasicLibraries" Version="10.0.36" />
     <PackageReference Include="MappingCloningExtensions" Version="2.0.8" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
