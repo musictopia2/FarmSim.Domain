@@ -1035,11 +1035,13 @@ public class WorkshopAutomationManager(
                 }
 
                 // Start NEXT cycle (consumes inputs NOW; offline approximation)
-                if (requirements.Count > 0)
+                string? nextCycleItem = PickNextCraftableItemForLane(lane);
+
+                if (nextCycleItem is null)
                 {
-                    if (inventory.Has(requirements) == false)
+                    if (GetOutstandingForBuilding() > 0)
                     {
-                        // Missing inputs -> block
+                        // There is still demand, but nothing craftable right now -> blocked
                         lane.BlockedAt ??= now;
                         lane.CycleEndsAt = null;
                         lane.ActiveItem = null;
@@ -1047,10 +1049,51 @@ public class WorkshopAutomationManager(
                         _needsSaving = true;
                         return;
                     }
-                    inventory.Consume(requirements);
+
+                    // No more work
+                    lane.ActiveItem = null;
+                    lane.StartedAt = null;
+                    lane.CycleEndsAt = null;
+                    lane.BlockedAt = null;
+                    _needsSaving = true;
+                    return;
                 }
 
-                cycleEnd = cycleEnd.Add(perCycle);
+                // Switch or continue based on the picker result
+                lane.ActiveItem = nextCycleItem;
+
+                var nextState = lane.Items.Single(x => x.Item.Equals(nextCycleItem, StringComparison.OrdinalIgnoreCase));
+                var nextRecipe = GetRecipe(nextCycleItem);
+
+                // If the chosen item already has stored units, let the next tick deliver them first
+                if (nextState.StoredUnits > 0)
+                {
+                    lane.CycleEndsAt = null;
+                    lane.StartedAt = null;
+                    _needsSaving = true;
+                    return;
+                }
+
+                var nextReqs = GetInputRequirements(lane, nextRecipe);
+                if (nextReqs.Count > 0)
+                {
+                    if (inventory.Has(nextReqs) == false)
+                    {
+                        lane.BlockedAt ??= now;
+                        lane.CycleEndsAt = null;
+                        lane.ActiveItem = null;
+                        lane.StartedAt = now;
+                        _needsSaving = true;
+                        return;
+                    }
+
+                    inventory.Consume(nextReqs);
+                }
+
+                var nextPerCycle = GetProductionTimePerItemAdjusted(lane, nextRecipe);
+                lane.StartedAt = cycleEnd;
+                cycleEnd = cycleEnd.Add(nextPerCycle);
+
             }
 
             // Persist next cycle end
