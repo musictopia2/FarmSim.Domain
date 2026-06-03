@@ -1,8 +1,8 @@
 ﻿namespace FarmSim.Domain.Services.StartingOptions;
-public class DefaultAutomatedStartingInventoryProvider : IAutomatedStartingInventoryProvider
+public class DefaultAutomatedStartingInventoryProvider(IStartingInventoryOverrideProvider startingInventoryOverrideProvider) : IAutomatedStartingInventoryProvider
 {
     Dictionary<string, int> IAutomatedStartingInventoryProvider.GetStartingInventory(FarmKey farm)
     {
-        return [];
+        return startingInventoryOverrideProvider.GetOverrides(farm, automated: true);
     }
 }
