@@ -455,13 +455,12 @@ public class WorkshopManager(InventoryManager inventory,
                 changed = true;
             }
         }
-        var offer = offers.FirstOrDefault(x => x.LevelRequired == level);
-        if (offer is not null)
+        var levelOffers = offers.Where(x => x.LevelRequired == level); //can't assume only one offer anymore when leveling up.
+        foreach (var offer in levelOffers)
         {
-            var workshop = _workshops.First(x => x.BuildingName == offer.TargetName);
+            var workshop = _workshops.Single(x => x.BuildingName == offer.TargetName);
             workshop.Unlocked = true;
             changed = true;
-
         }
         if (changed)
         {
